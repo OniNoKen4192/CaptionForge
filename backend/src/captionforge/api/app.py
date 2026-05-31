@@ -32,7 +32,7 @@ def create_app() -> FastAPI:
 
     def require_root() -> Path:
         if app.state.root is None:
-            raise HTTPException(status_code=409, detail="no dataset open")
+            raise HTTPException(status_code=404, detail="no dataset open")
         return app.state.root
 
     def resolve_image(item_id: str) -> Path:

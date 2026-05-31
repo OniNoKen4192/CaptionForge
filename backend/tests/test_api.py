@@ -133,3 +133,9 @@ def test_save_rejects_malformed_section(client, dataset_dir):
         json={"sections": [{"label": "T", "tags": ["a"]}], "base_mtime": base},  # missing "kind"
     )
     assert r.status_code == 422
+
+
+def test_item_requires_open_dataset(client):
+    # fresh client, no dataset opened
+    assert client.get("/api/item/a.png").status_code == 404
+    assert client.put("/api/item/a.png", json={"sections": [], "base_mtime": None}).status_code == 404

@@ -33,3 +33,14 @@ def test_normalize_fixes_spacing_not_content(sample_caption_text):
     out = serialize(parse(sample_caption_text))
     assert "Masami, 1girl, solo" in out  # space added after the trigger
     assert "nude," not in out            # trailing comma gone
+
+
+def test_serializer_preserves_profile_sensitive_tag_content():
+    # Underscores, @artist prefix, and score_X must survive verbatim.
+    # Correct normalization of these is profile-dependent and must NOT happen here.
+    doc = parse("=== WD14-Tags ===\nlong_hair, @nnn yryr, score_9, looking_at_viewer")
+    out = serialize(doc)
+    for token in ["long_hair", "@nnn yryr", "score_9", "looking_at_viewer"]:
+        assert token in out
+    # round-trip stable
+    assert parse(serialize(doc)) == doc
