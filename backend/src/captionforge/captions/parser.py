@@ -25,6 +25,9 @@ def parse(text: str) -> CaptionDoc:
     if not matches:
         return CaptionDoc(sections=[_make_section(None, text)])
     sections: list[Section] = []
+    preamble = text[: matches[0].start()]
+    if preamble.strip():
+        sections.append(_make_section(None, preamble))
     for i, m in enumerate(matches):
         label = m.group(1).strip()
         start = m.end()
