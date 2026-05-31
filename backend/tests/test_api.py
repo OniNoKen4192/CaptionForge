@@ -42,3 +42,33 @@ def test_parse_endpoint(client):
     secs = r.json()["sections"]
     assert secs[0]["kind"] == "tags"
     assert secs[0]["tags"] == ["a", "b", "c"]
+
+
+def test_get_item_returns_parsed_sections(client, dataset_dir):
+    client.post("/api/dataset/open", json={"path": str(dataset_dir)})
+    r = client.get("/api/item/a.png")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["sections"][0]["tags"][:2] == ["Masami", "1girl"]
+    assert data["caption_mtime"] is not None
+    assert data["image_url"].endswith("/api/image/a.png")
+
+
+def test_get_unpaired_item_has_empty_sections(client, dataset_dir):
+    client.post("/api/dataset/open", json={"path": str(dataset_dir)})
+    r = client.get("/api/item/b.png")
+    assert r.status_code == 200
+    assert r.json()["sections"] == []
+    assert r.json()["caption_mtime"] is None
+
+
+def test_get_image_returns_bytes(client, dataset_dir):
+    client.post("/api/dataset/open", json={"path": str(dataset_dir)})
+    r = client.get("/api/image/a.png")
+    assert r.status_code == 200
+    assert r.content.startswith(b"\x89PNG")
+
+
+def test_item_rejects_traversal(client, dataset_dir):
+    client.post("/api/dataset/open", json={"path": str(dataset_dir)})
+    assert client.get("/api/item/..%2Fsecret.txt").status_code == 400
