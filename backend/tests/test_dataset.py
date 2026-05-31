@@ -41,8 +41,19 @@ def test_resolve_within_allows_direct_child(tmp_path: Path):
     assert resolve_within(tmp_path, "a.png") == (tmp_path / "a.png").resolve()
 
 
-def test_resolve_within_rejects_traversal(tmp_path: Path):
-    with pytest.raises(ValueError):
-        resolve_within(tmp_path, "../secret.txt")
-    with pytest.raises(ValueError):
-        resolve_within(tmp_path, "sub/c.png")
+def test_resolve_within_rejects_traversal_and_illegal_names(tmp_path: Path):
+    bad_names = [
+        "../secret.txt",
+        "sub/c.png",
+        "sub\\c.png",
+        "..",
+        "",
+        ".",
+        "C:/Windows/x",
+        "/etc/passwd",
+        "a.png:stream",   # NTFS alternate data stream
+        "a.png\x00evil",  # embedded null byte
+    ]
+    for name in bad_names:
+        with pytest.raises(ValueError):
+            resolve_within(tmp_path, name)

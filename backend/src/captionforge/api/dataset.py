@@ -23,7 +23,10 @@ def scan_dataset(root: Path) -> list[dict]:
 def resolve_within(root: Path, name: str) -> Path:
     """Resolve `name` strictly as a direct file in `root`. Rejects any
     separators, parent refs, or symlink escapes."""
-    if "/" in name or "\\" in name or name in ("", ".", ".."):
+    if (
+        "/" in name or "\\" in name or ":" in name or "\x00" in name
+        or name in ("", ".", "..")
+    ):
         raise ValueError(f"illegal name: {name!r}")
     root_resolved = root.resolve()
     candidate = (root_resolved / name).resolve()
