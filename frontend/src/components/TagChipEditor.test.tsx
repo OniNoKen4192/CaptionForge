@@ -29,7 +29,29 @@ describe("TagChipEditor", () => {
     const user = userEvent.setup();
     render(<Harness initial={["a", "b", "a", "c", "b"]} />);
     await user.click(screen.getByRole("button", { name: "dedupe" }));
-    const chips = screen.getAllByTestId("chip").map((c) => c.textContent?.replace("✕", "").trim());
+    const chips = screen.getAllByTestId("chip").map((c) =>
+      c.textContent?.replace(/[✕↑↓]/g, "").trim()
+    );
     expect(chips).toEqual(["a", "b", "c"]);
+  });
+
+  it("moves a tag up via its ↑ button", async () => {
+    const user = userEvent.setup();
+    render(<Harness initial={["a", "b", "c"]} />);
+    await user.click(screen.getByRole("button", { name: "move b up" }));
+    const chips = screen.getAllByTestId("chip").map((c) =>
+      c.textContent?.replace(/[✕↑↓]/g, "").trim()
+    );
+    expect(chips).toEqual(["b", "a", "c"]);
+  });
+
+  it("move up is a no-op at the top", async () => {
+    const user = userEvent.setup();
+    render(<Harness initial={["a", "b"]} />);
+    await user.click(screen.getByRole("button", { name: "move a up" }));
+    const chips = screen.getAllByTestId("chip").map((c) =>
+      c.textContent?.replace(/[✕↑↓]/g, "").trim()
+    );
+    expect(chips).toEqual(["a", "b"]);
   });
 });

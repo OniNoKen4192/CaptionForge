@@ -40,6 +40,20 @@ export function ReviewPane({ item, onSaved }: Props) {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [item.id]);
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        if (dirty || raw !== null) {
+          void save();
+        }
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line
+  }, [dirty, raw, sections, baseMtime, item.id]);
+
   function editSections(next: Section[]) {
     setSections(next);
     setDirty(true);
