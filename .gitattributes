@@ -1,0 +1,10 @@
+# CaptionForge writes LF-only caption files and tests assert exact "\n" output.
+# Force LF in the working tree for all text so checkouts never introduce CRLF.
+* text=auto eol=lf
+
+# Binary image assets — never touch line endings.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
