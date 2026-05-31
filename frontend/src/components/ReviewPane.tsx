@@ -50,12 +50,18 @@ export function ReviewPane({ item, onSaved }: Props) {
   }
 
   async function exitRaw() {
-    if (raw !== null) {
+    if (raw === null) {
+      return;
+    }
+    try {
       const parsed = await parseRaw(raw);
       setSections(parsed.sections);
       setDirty(true);
+      setRaw(null);
+    } catch (e: any) {
+      setError(String(e.detail ?? e));
+      // stay in raw mode so the user can fix the text or retry
     }
-    setRaw(null);
   }
 
   async function save() {
