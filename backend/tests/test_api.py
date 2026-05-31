@@ -123,3 +123,13 @@ def test_save_rejects_both_or_neither_payloads(client, dataset_dir):
         "/api/item/a.png",
         json={"sections": [], "raw": "x", "base_mtime": base},
     ).status_code == 422
+
+
+def test_save_rejects_malformed_section(client, dataset_dir):
+    _open(client, dataset_dir)
+    base = client.get("/api/item/a.png").json()["caption_mtime"]
+    r = client.put(
+        "/api/item/a.png",
+        json={"sections": [{"label": "T", "tags": ["a"]}], "base_mtime": base},  # missing "kind"
+    )
+    assert r.status_code == 422

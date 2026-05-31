@@ -87,7 +87,10 @@ def create_app() -> FastAPI:
         if has_raw:
             doc = parse(body.raw)
         else:
-            doc = CaptionDoc.from_dict({"sections": body.sections})
+            try:
+                doc = CaptionDoc.from_dict({"sections": body.sections})
+            except (KeyError, TypeError) as exc:
+                raise HTTPException(status_code=422, detail=f"invalid section: {exc}")
         caption_path = image_path.with_suffix(".txt")
         current = storage.file_mtime(caption_path)
         if current is not None and body.base_mtime != current:
