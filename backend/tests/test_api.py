@@ -72,3 +72,54 @@ def test_get_image_returns_bytes(client, dataset_dir):
 def test_item_rejects_traversal(client, dataset_dir):
     client.post("/api/dataset/open", json={"path": str(dataset_dir)})
     assert client.get("/api/item/..%2Fsecret.txt").status_code == 400
+
+
+def _open(client, dataset_dir):
+    client.post("/api/dataset/open", json={"path": str(dataset_dir)})
+
+
+def test_save_sections_normalizes_and_returns_mtime(client, dataset_dir):
+    _open(client, dataset_dir)
+    base = client.get("/api/item/a.png").json()["caption_mtime"]
+    body = {
+        "sections": [
+            {"label": "WD14-Tags", "kind": "tags", "tags": ["Masami", "1girl", "cat ears"]},
+        ],
+        "base_mtime": base,
+    }
+    r = client.put("/api/item/a.png", json=body)
+    assert r.status_code == 200
+    on_disk = (dataset_dir / "a.txt").read_text(encoding="utf-8")
+    assert on_disk == "=== WD14-Tags ===\nMasami, 1girl, cat ears\n"
+
+
+def test_save_raw_is_parsed_and_normalized(client, dataset_dir):
+    _open(client, dataset_dir)
+    base = client.get("/api/item/a.png").json()["caption_mtime"]
+    r = client.put("/api/item/a.png", json={"raw": "=== T ===\nx,y,z,", "base_mtime": base})
+    assert r.status_code == 200
+    assert (dataset_dir / "a.txt").read_text(encoding="utf-8") == "=== T ===\nx, y, z\n"
+
+
+def test_save_conflict_on_stale_mtime(client, dataset_dir):
+    _open(client, dataset_dir)
+    r = client.put("/api/item/a.png", json={"sections": [], "base_mtime": 1.0})
+    assert r.status_code == 409
+
+
+def test_save_creates_caption_for_unpaired(client, dataset_dir):
+    _open(client, dataset_dir)
+    body = {"sections": [{"label": None, "kind": "tags", "tags": ["a", "b"]}], "base_mtime": None}
+    r = client.put("/api/item/b.png", json=body)
+    assert r.status_code == 200
+    assert (dataset_dir / "b.txt").read_text(encoding="utf-8") == "a, b\n"
+
+
+def test_save_rejects_both_or_neither_payloads(client, dataset_dir):
+    _open(client, dataset_dir)
+    base = client.get("/api/item/a.png").json()["caption_mtime"]
+    assert client.put("/api/item/a.png", json={"base_mtime": base}).status_code == 422
+    assert client.put(
+        "/api/item/a.png",
+        json={"sections": [], "raw": "x", "base_mtime": base},
+    ).status_code == 422
