@@ -1,122 +1,64 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useCallback, useEffect, useState } from "react";
+import type { Item } from "./types";
+import { openDataset } from "./api";
+import { DatasetOpen } from "./components/DatasetOpen";
+import { ItemList } from "./components/ItemList";
+import { ReviewPane } from "./components/ReviewPane";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [items, setItems] = useState<Item[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function open(path: string) {
+    setError(null);
+    try {
+      const { items } = await openDataset(path);
+      setItems(items);
+      setSelectedId(items.length ? items[0].id : null);
+    } catch (e: any) {
+      setError(String(e.detail ?? e));
+    }
+  }
+
+  const step = useCallback((delta: number) => {
+    setSelectedId((cur) => {
+      const idx = items.findIndex((it) => it.id === cur);
+      if (idx === -1) return cur;
+      const next = Math.min(Math.max(idx + delta, 0), items.length - 1);
+      return items[next].id;
+    });
+  }, [items]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement)?.tagName;
+      const typing = tag === "TEXTAREA" || tag === "INPUT";
+      if (e.key === "ArrowLeft" && !typing) step(-1);
+      if (e.key === "ArrowRight" && !typing) step(1);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [step]);
+
+  function markSaved(id: string, mtime: number) {
+    setItems((its) => its.map((it) => (it.id === id ? { ...it, has_caption: true, caption_mtime: mtime } : it)));
+  }
+
+  const selected = items.find((it) => it.id === selectedId) ?? null;
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    <div className="app" style={{ display: "flex", height: "100vh" }}>
+      <aside style={{ width: "16rem", borderRight: "1px solid #ccc", display: "flex", flexDirection: "column" }}>
+        <DatasetOpen onOpen={open} />
+        {error && <div className="error" role="alert">{error}</div>}
+        <ItemList items={items} selectedId={selectedId} onSelect={setSelectedId} />
+      </aside>
+      <main style={{ flex: 1, padding: "1rem", overflow: "auto" }}>
+        {selected
+          ? <ReviewPane key={selected.id} item={selected} onSaved={(m) => markSaved(selected.id, m)} />
+          : <p>Open a dataset to begin.</p>}
+      </main>
+    </div>
+  );
 }
-
-export default App
