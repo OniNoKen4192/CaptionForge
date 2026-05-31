@@ -1,0 +1,8 @@
+=== WD14-Tags ===
+Masami,1girl, solo, long hair, blue eyes, black hair, cat ears, nude,
+
+=== Qwen-VL ===
+The image depicts an anthropomorphic cat character with black fur, blue eyes, and long black hair styled in a high ponytail.
+
+=== JoyCaption2 ===
+This digital drawing features an anthropomorphic black cat with blue eyes, lying on a white surface against a beige background.
