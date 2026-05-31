@@ -201,6 +201,15 @@ serializing an already-parsed doc and re-parsing yields the same model
 (idempotent after the first normalize). Normalization only changes *spacing/
 layout*, never tag content or prose text.
 
+> **Guardrail — normalization is spacing-only; never rewrite tag content.**
+> Tag *text* is preserved verbatim: underscores, `@artist` prefixes, and
+> `score_X` are not altered. This is deliberate, not incidental — the correct
+> normalization is **profile-dependent** (Anima wants spaces *except* `score_X`;
+> Pony tolerates underscores; Illustrious treats them as interchangeable). The
+> foundation must not pre-empt that choice. Underscore/space conversion, `@`
+> handling, and special-tag rules belong to the per-model **profile** layer (see
+> `Docs/captioning/curation-rules.md`), not the core serializer.
+
 ## REST API
 
 All paths are validated and confined under the opened dataset root (no
@@ -289,9 +298,13 @@ Single-page app, three regions:
 ## Seams Left Open (designed-for, not built)
 
 Each future subsystem consumes the same caption model as a separate unit; none
-requires reworking the parser:
+requires reworking the parser. The authoritative spec for the profile/normalize/
+validate/score/compose layer is **`Docs/captioning/curation-rules.md`** (distilled
+from the per-model research in `Docs/captioning/`); the items below map to its
+"four jobs":
 
-- Base-model profiles → drive scoring, compose, tag style.
+- Base-model profiles → drive normalize, validate, score, compose, tag style.
+  One profile = a row's worth of settings (see the curation-rules master matrix).
 - Profile-relative scoring → reads `CaptionDoc`, returns issues.
 - Metadata / review-status sidecar (`.caption-editor/index.json`) → a parallel
   store keyed by item `id`.

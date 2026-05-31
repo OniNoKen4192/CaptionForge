@@ -731,6 +731,14 @@ git commit -m "feat: serializer + round-trip idempotence; export captions API"
 > mis-split it into an extra section. Real captions don't do this; revisit only
 > if it occurs.
 
+> **Guardrail — do NOT extend the serializer to rewrite tag content.** It joins
+> tags with `", "` and nothing more. Tag *text* (underscores, `@artist`,
+> `score_X`) stays verbatim. Correct underscore/space/`@` normalization is
+> **profile-dependent** (Anima: spaces except `score_X`; Pony: underscores
+> tolerated; Illustrious: interchangeable) and belongs to the future profile
+> layer (`Docs/captioning/curation-rules.md`), not here. The
+> `test_normalize_fixes_spacing_not_content` test guards this — keep it.
+
 ---
 
 ### Task 9: Dataset scan + path confinement
