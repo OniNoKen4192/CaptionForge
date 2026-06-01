@@ -8,12 +8,13 @@ interface Props {
 
 export function ItemList({ items, selectedId, onSelect }: Props) {
   return (
-    <ul className="item-list" style={{ listStyle: "none", margin: 0, padding: 0, overflowY: "auto" }}>
+    <ul className="item-list">
       {items.map((it) => (
         <li key={it.id}>
           <button
+            className="item-row"
+            aria-current={it.id === selectedId ? "true" : undefined}
             onClick={() => onSelect(it.id)}
-            style={{ fontWeight: it.id === selectedId ? "bold" : "normal", width: "100%", textAlign: "left" }}
           >
             {it.has_caption ? "📝" : "◻"} {it.id}
           </button>

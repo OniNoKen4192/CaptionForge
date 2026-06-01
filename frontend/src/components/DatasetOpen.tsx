@@ -12,7 +12,6 @@ export function DatasetOpen({ onOpen }: Props) {
       onSubmit={(e) => { e.preventDefault(); if (path.trim()) onOpen(path.trim()); }}
     >
       <input
-        style={{ width: "30rem" }}
         placeholder="dataset directory path"
         value={path}
         onChange={(e) => setPath(e.target.value)}

@@ -99,11 +99,11 @@ export function ReviewPane({ item, onSaved }: Props) {
   }
 
   return (
-    <div className="review-pane" style={{ display: "flex", gap: "1rem" }}>
-      <div style={{ flex: 1 }}>
+    <div className="review-pane">
+      <div className="pane-col">
         <ImagePreview url={imageUrl} />
       </div>
-      <div style={{ flex: 1 }}>
+      <div className="pane-col tools">
         <div className="toolbar">
           <button onClick={save} disabled={!dirty && raw === null}>Save{dirty ? " *" : ""}</button>
           {raw === null

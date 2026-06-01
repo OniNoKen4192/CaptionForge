@@ -48,13 +48,13 @@ export default function App() {
   const selected = items.find((it) => it.id === selectedId) ?? null;
 
   return (
-    <div className="app" style={{ display: "flex", height: "100vh" }}>
-      <aside style={{ width: "16rem", borderRight: "1px solid #ccc", display: "flex", flexDirection: "column" }}>
+    <div className="app">
+      <aside className="sidebar">
         <DatasetOpen onOpen={open} />
         {error && <div className="error" role="alert">{error}</div>}
         <ItemList items={items} selectedId={selectedId} onSelect={setSelectedId} />
       </aside>
-      <main style={{ flex: 1, padding: "1rem", overflow: "auto" }}>
+      <main className="main-pane">
         {selected
           ? <ReviewPane key={selected.id} item={selected} onSaved={(m) => markSaved(selected.id, m)} />
           : <p>Open a dataset to begin.</p>}
